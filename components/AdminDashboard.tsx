@@ -13,10 +13,6 @@ interface AdminDashboardProps {
 }
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete, onAddSupport, onUpdateFollowUp }) => {
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newDate, setNewDate] = useState('');
-  const [newTime, setNewTime] = useState('');
-  const [newMinister, setNewMinister] = useState<string>(MINISTERS[0]);
   const [filterMinister, setFilterMinister] = useState<string>(MINISTERS[0]);
   const [error, setError] = useState<string>('');
   const [supportFor, setSupportFor] = useState<Slot | null>(null);
@@ -40,33 +36,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
     return reasonTag === 'apoyo' || byTag.startsWith('apoyo');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const start = new Date(`${newDate}T${newTime}`);
-    const end = new Date(start.getTime() + 60 * 60 * 1000); 
-    setError('');
-
-    // Evitar solapamientos para el mismo líder
-    const overlap = slots.some(s => 
-      s.ministerName === newMinister &&
-      new Date(s.startTime).getTime() < end.getTime() &&
-      new Date(s.endTime).getTime() > start.getTime()
-    );
-    if (overlap) {
-      setError('Ya existe un espacio asignado al mismo líder en ese horario.');
-      return;
-    }
-    
-    onAdd({
-      startTime: start.toISOString(),
-      endTime: end.toISOString(),
-      ministerName: newMinister
-    });
-    
-    setNewDate('');
-    setNewTime('');
-    setShowAddForm(false);
-  };
+  
 
   return (
     <div className="space-y-6">
@@ -105,13 +75,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
             </select>
             </div>
             <button 
-              onClick={() => setShowAddForm(!showAddForm)}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center transition-all shadow-sm w-full sm:w-auto"
-            >
-              <i className={`fas ${showAddForm ? 'fa-times' : 'fa-plus'} mr-2`}></i>
-              {showAddForm ? 'Cerrar' : 'Crear Horario'}
-            </button>
-            <button 
               onClick={() => {
                 setShowAddManyForm(!showAddManyForm);
                 setBatchLeader(filterMinister);
@@ -133,41 +96,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
           </div>
         )}
 
-        {showAddForm && (
-          <div className="p-6 bg-red-50/50 border-b border-red-100 animate-in slide-in-from-top duration-300">
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-red-800 uppercase mb-1">Fecha</label>
-                <input required type="date" value={newDate} onChange={e => setNewDate(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-red-500 outline-none" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-red-800 uppercase mb-1">Hora Inicio</label>
-                <input required type="time" value={newTime} onChange={e => setNewTime(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-red-500 outline-none" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-red-800 uppercase mb-1">Líder</label>
-                <select
-                  required
-                  value={newMinister}
-                  onChange={e => setNewMinister(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-red-500 outline-none bg-white"
-                >
-                  {MINISTERS.map(m => (
-                    <option key={m} value={m}>{m}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="md:col-span-3">
-                <button type="submit" className="w-full bg-red-600 text-white font-bold py-2.5 rounded-lg text-sm hover:bg-red-700 transition-all shadow-md uppercase tracking-wider">Habilitar Espacio</button>
-              </div>
-            </form>
-            {error && (
-              <div className="text-red-700 text-sm mt-3 font-semibold">
-                {error}
-              </div>
-            )}
-          </div>
-        )}
+        
 
         {showAddManyForm && (
           <div className="p-6 bg-slate-50 border-b border-slate-200 animate-in slide-in-from-top duration-300">
@@ -387,4 +316,3 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
   );
 };
 export default AdminDashboard;
-
