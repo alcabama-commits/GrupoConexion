@@ -63,9 +63,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-          <h2 className="text-xl font-bold text-slate-800">Control de Espacios</h2>
-          <div className="flex items-center gap-3">
+        <div className="p-6 border-b border-slate-100 bg-slate-50">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-xl font-bold text-slate-800">Control de Espacios</h2>
+            <div className="flex items-center gap-3">
             <label className="text-xs font-bold text-slate-600 uppercase">Líder</label>
             <select
               value={filterMinister}
@@ -76,14 +77,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
                 <option key={m} value={m}>{m}</option>
               ))}
             </select>
+            </div>
+            <button 
+              onClick={() => setShowAddForm(!showAddForm)}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center transition-all shadow-sm w-full sm:w-auto"
+            >
+              <i className={`fas ${showAddForm ? 'fa-times' : 'fa-plus'} mr-2`}></i>
+              {showAddForm ? 'Cerrar' : 'Crear Horario'}
+            </button>
           </div>
-          <button 
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center transition-all shadow-sm"
-          >
-            <i className={`fas ${showAddForm ? 'fa-times' : 'fa-plus'} mr-2`}></i>
-            {showAddForm ? 'Cerrar' : 'Crear Horario'}
-          </button>
         </div>
 
         {showAddForm && (
