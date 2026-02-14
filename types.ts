@@ -9,10 +9,7 @@ export interface Slot {
   ministerName: string;
   supportLeader?: string;
   followUpDone?: boolean;
-  followUpNotes?: string;
   needsReinforcement?: boolean;
-  taskAssigned?: boolean;
-  taskText?: string;
 }
 
 export interface BookingRequest {

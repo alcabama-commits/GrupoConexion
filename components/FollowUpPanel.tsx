@@ -73,28 +73,6 @@ const FollowUpPanel: React.FC<FollowUpPanelProps> = ({ slots, onUpdate }) => {
                       />
                       Requiere refuerzo
                     </label>
-                    <label className="inline-flex items-center gap-2 text-sm text-slate-700">
-                      <input
-                        type="checkbox"
-                        checked={!!s.taskAssigned}
-                        onChange={(e) => onUpdate(s.id, { taskAssigned: e.target.checked })}
-                      />
-                      Se dejó tarea
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="¿Cuál tarea?"
-                      value={s.taskText ?? ''}
-                      onChange={(e) => onUpdate(s.id, { taskText: e.target.value })}
-                      className="px-3 py-2 rounded-lg border border-slate-300 text-sm"
-                    />
-                    <textarea
-                      rows={2}
-                      placeholder="Notas internas..."
-                      value={s.followUpNotes ?? ''}
-                      onChange={(e) => onUpdate(s.id, { followUpNotes: e.target.value })}
-                      className="md:col-span-2 px-3 py-2 rounded-lg border border-slate-300 text-sm resize-y"
-                    />
                   </div>
                 </td>
               </tr>
@@ -107,4 +85,3 @@ const FollowUpPanel: React.FC<FollowUpPanelProps> = ({ slots, onUpdate }) => {
 };
 
 export default FollowUpPanel;
-
