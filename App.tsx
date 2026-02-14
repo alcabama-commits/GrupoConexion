@@ -81,6 +81,7 @@ const App: React.FC = () => {
     setSlots(updated);
     // Marcar en backend el apoyo como reservado, si aplica
     api.bookSlot(supportSlot.id, `Apoyo (${supportLeader})`, 'Apoyo');
+    api.addSupport(main.id, supportLeader);
     return true;
   }, [slots]);
   const handleRequestAdmin = useCallback(() => {

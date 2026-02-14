@@ -1,8 +1,7 @@
 import { Slot } from './types';
 
-// ¡IMPORTANTE! Reemplaza esta URL con la que copiaste de Google Apps Script
 // Hoja de cálculo vinculada: https://docs.google.com/spreadsheets/d/14KfjdaZHvJlBzjJkz4cw8j46LmqOWUE4G-6xpD5UnV4/edit
-const API_URL = 'https://script.google.com/macros/s/AKfycbyrSXFpoFu6NafDfnI7znDoQJKx1GZ720WHSrll2bqz9tJNiHqTutPqsFrwGFpvucyH/exec'; 
+const API_URL = 'https://script.google.com/macros/s/AKfycbym6IZ7feJaBZVQ1NcR3tYdg-B1hQteb0pfWeV9czOUzWjddURPYfISVUwDXD88QTdk/exec'; 
 
 export const api = {
   async getSlots(): Promise<Slot[]> {
@@ -27,6 +26,13 @@ export const api = {
     await fetch(API_URL, {
       method: 'POST',
       body: JSON.stringify({ action: 'book', slotId, userName, reason }),
+    });
+  },
+
+  async addSupport(slotId: string, supportLeader: string) {
+    await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'addSupport', slotId, supportLeader }),
     });
   },
 
