@@ -18,6 +18,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
   const [filterMinister, setFilterMinister] = useState<string>(MINISTERS[0]);
   const [error, setError] = useState<string>('');
   const [supportFor, setSupportFor] = useState<Slot | null>(null);
+  const [showAddManyForm, setShowAddManyForm] = useState(false);
+  const [batchLeader, setBatchLeader] = useState<string>(MINISTERS[0]);
+  const [batch, setBatch] = useState<Array<{ date: string; time: string; duration: number }>>([
+    { date: '', time: '', duration: 60 },
+  ]);
 
   const viewSlots = useMemo(
     () => slots
@@ -85,6 +90,16 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
               <i className={`fas ${showAddForm ? 'fa-times' : 'fa-plus'} mr-2`}></i>
               {showAddForm ? 'Cerrar' : 'Crear Horario'}
             </button>
+            <button 
+              onClick={() => {
+                setShowAddManyForm(!showAddManyForm);
+                setBatchLeader(filterMinister);
+              }}
+              className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center transition-all shadow-sm w-full sm:w-auto"
+            >
+              <i className={`fas ${showAddManyForm ? 'fa-times' : 'fa-layer-group'} mr-2`}></i>
+              {showAddManyForm ? 'Cerrar' : 'Crear Múltiples'}
+            </button>
           </div>
         </div>
 
@@ -114,6 +129,136 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
               </div>
               <div className="md:col-span-3">
                 <button type="submit" className="w-full bg-red-600 text-white font-bold py-2.5 rounded-lg text-sm hover:bg-red-700 transition-all shadow-md uppercase tracking-wider">Habilitar Espacio</button>
+              </div>
+            </form>
+            {error && (
+              <div className="text-red-700 text-sm mt-3 font-semibold">
+                {error}
+              </div>
+            )}
+          </div>
+        )}
+
+        {showAddManyForm && (
+          <div className="p-6 bg-slate-50 border-b border-slate-200 animate-in slide-in-from-top duration-300">
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setError('');
+                let created = 0;
+                const used: Array<{ start: number; end: number }> = [];
+                for (const item of batch) {
+                  if (!item.date || !item.time) continue;
+                  const start = new Date(`${item.date}T${item.time}`);
+                  const end = new Date(start.getTime() + item.duration * 60 * 1000);
+                  const overlapExisting = slots.some(s =>
+                    s.ministerName === batchLeader &&
+                    new Date(s.startTime).getTime() < end.getTime() &&
+                    new Date(s.endTime).getTime() > start.getTime()
+                  );
+                  const overlapBatch = used.some(u => u.start < end.getTime() && u.end > start.getTime());
+                  if (overlapExisting || overlapBatch) {
+                    continue;
+                  }
+                  onAdd({
+                    startTime: start.toISOString(),
+                    endTime: end.toISOString(),
+                    ministerName: batchLeader,
+                  });
+                  used.push({ start: start.getTime(), end: end.getTime() });
+                  created++;
+                }
+                if (created === 0) {
+                  setError('No se crearon horarios. Revisa solapes o datos incompletos.');
+                }
+                setBatch([{ date: '', time: '', duration: 60 }]);
+                setShowAddManyForm(false);
+              }}
+              className="space-y-4"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div className="md:col-span-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Líder</label>
+                  <select
+                    value={batchLeader}
+                    onChange={e => setBatchLeader(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white"
+                  >
+                    {MINISTERS.map(m => (<option key={m} value={m}>{m}</option>))}
+                  </select>
+                </div>
+                <div className="md:col-span-3 text-xs text-slate-500">
+                  Ingresa varias fechas y horas; la duración por defecto es 60 minutos. Se omitirán solapes del mismo líder.
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-3">
+                {batch.map((row, idx) => (
+                  <div key={idx} className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Fecha</label>
+                      <input
+                        required
+                        type="date"
+                        value={row.date}
+                        onChange={e => {
+                          const v = e.target.value;
+                          setBatch(b => b.map((r, i) => i === idx ? { ...r, date: v } : r));
+                        }}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Hora</label>
+                      <input
+                        required
+                        type="time"
+                        value={row.time}
+                        onChange={e => {
+                          const v = e.target.value;
+                          setBatch(b => b.map((r, i) => i === idx ? { ...r, time: v } : r));
+                        }}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Duración (min)</label>
+                      <input
+                        required
+                        min={15}
+                        step={15}
+                        type="number"
+                        value={row.duration}
+                        onChange={e => {
+                          const v = parseInt(e.target.value || '60', 10);
+                          setBatch(b => b.map((r, i) => i === idx ? { ...r, duration: v } : r));
+                        }}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setBatch(b => [...b, { date: '', time: '', duration: 60 }])}
+                        className="flex-1 bg-slate-900 text-white font-bold py-2.5 rounded-lg text-sm hover:bg-slate-800 transition-all"
+                      >
+                        Añadir
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBatch(b => b.length > 1 ? b.filter((_, i) => i !== idx) : b)}
+                        className="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 text-sm hover:bg-slate-100"
+                        disabled={batch.length <= 1}
+                      >
+                        Quitar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="md:col-span-4">
+                <button type="submit" className="w-full bg-red-600 text-white font-bold py-2.5 rounded-lg text-sm hover:bg-red-700 transition-all shadow-md uppercase tracking-wider">
+                  Crear horarios
+                </button>
               </div>
             </form>
             {error && (
