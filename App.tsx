@@ -134,7 +134,7 @@ const App: React.FC = () => {
               }}
               onPersistFollowUp={async (slot) => {
                 try {
-                  await api.followUp(slot.id, !!slot.followUpDone, !!slot.needsReinforcement);
+                  await api.followUp(slot.id, !!slot.followUpDone, !!slot.needsReinforcement, slot.followUpStep);
                 } catch {
                   // silencioso: la UI mantiene cambios locales
                 }

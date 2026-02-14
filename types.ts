@@ -10,6 +10,7 @@ export interface Slot {
   supportLeader?: string;
   followUpDone?: boolean;
   needsReinforcement?: boolean;
+  followUpStep?: string;
 }
 
 export interface BookingRequest {

@@ -15,10 +15,10 @@ export const api = {
     }
   },
 
-  async followUp(slotId: string, followUpDone: boolean, needsReinforcement: boolean) {
+  async followUp(slotId: string, followUpDone: boolean, needsReinforcement: boolean, followUpStep?: string) {
     await fetch(API_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: 'followUp', slotId, followUpDone, needsReinforcement }),
+      body: JSON.stringify({ action: 'followUp', slotId, followUpDone, needsReinforcement, followUpStep }),
     });
   },
 

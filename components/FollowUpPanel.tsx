@@ -10,6 +10,18 @@ interface FollowUpPanelProps {
 const FollowUpPanel: React.FC<FollowUpPanelProps> = ({ slots, onUpdate, onPersist }) => {
   const [leader, setLeader] = useState<string>(MINISTERS[0]);
   const [saving, setSaving] = useState<Record<string, boolean>>({});
+  const STEPS = [
+    'Paso 1',
+    'Paso 2',
+    'Paso 3 y 4',
+    'Paso 5',
+    'Paso 6 y 7',
+    'Paso 8',
+    'Paso 9',
+    'Paso 10',
+    'Paso 11',
+    'Paso 12',
+  ];
   const list = useMemo(
     () => slots
       .filter(s => s.ministerName === leader && s.isBooked)
@@ -58,7 +70,7 @@ const FollowUpPanel: React.FC<FollowUpPanelProps> = ({ slots, onUpdate, onPersis
                   <div className="text-xs text-slate-500">{s.reason}</div>
                 </td>
                 <td className="px-4 py-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-start">
                     <label className="inline-flex items-center gap-2 text-sm text-slate-700">
                       <input
                         type="checkbox"
@@ -67,6 +79,20 @@ const FollowUpPanel: React.FC<FollowUpPanelProps> = ({ slots, onUpdate, onPersis
                       />
                       Realizada
                     </label>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Ministración realizada</label>
+                      <select
+                        value={s.followUpStep ?? ''}
+                        onChange={(e) => {
+                          const value = e.target.value || undefined;
+                          onUpdate(s.id, { followUpStep: value, followUpDone: value ? true : s.followUpDone });
+                        }}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white"
+                      >
+                        <option value="">Seleccionar paso</option>
+                        {STEPS.map(st => (<option key={st} value={st}>{st}</option>))}
+                      </select>
+                    </div>
                     <label className="inline-flex items-center gap-2 text-sm text-slate-700">
                       <input
                         type="checkbox"
