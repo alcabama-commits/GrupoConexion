@@ -209,4 +209,5 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
     </div>
   );
 };
+export default AdminDashboard;
 
