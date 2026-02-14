@@ -54,6 +54,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
     return base;
   }, [slots, filterMinister, status, support, search]);
 
+  const nowMs = Date.now();
+  const upcomingSlots = useMemo(
+    () => viewSlots.filter(s => new Date(s.startTime).getTime() >= nowMs),
+    [viewSlots, nowMs]
+  );
+
   const isSupportBooking = (s: Slot) => {
     const reasonTag = (s.reason ?? '').toLowerCase().trim();
     const byTag = (s.bookedBy ?? '').toLowerCase().trim();
@@ -179,7 +185,63 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
           </div>
         )}
 
-        
+        {tab === 'seguimiento' && (
+          <div className="px-6 py-4 border-b border-slate-100 bg-white">
+            <div className="flex flex-col md:flex-row md:items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setShowFilters(v => !v)}
+                className="px-4 py-2 rounded-lg text-sm font-bold bg-slate-900 text-white hover:bg-slate-800 w-full md:w-auto"
+              >
+                {showFilters ? 'Ocultar filtros' : 'Mostrar filtros'}
+              </button>
+              <div className="flex-1">
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Buscar por usuario, motivo o líder"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                />
+              </div>
+            </div>
+            {showFilters && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Estado</label>
+                  <select
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value as any)}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white"
+                  >
+                    <option value="todos">Todos</option>
+                    <option value="libres">Libres</option>
+                    <option value="reservados">Reservados</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Apoyo</label>
+                  <select
+                    value={support}
+                    onChange={(e) => setSupport(e.target.value as any)}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white"
+                  >
+                    <option value="cualquiera">Cualquiera</option>
+                    <option value="con">Con apoyo</option>
+                    <option value="sin">Sin apoyo</option>
+                  </select>
+                </div>
+                <label className="flex items-center gap-2 text-sm mt-6 md:mt-0">
+                  <input
+                    type="checkbox"
+                    checked={groupByDay}
+                    onChange={(e) => setGroupByDay(e.target.checked)}
+                  />
+                  Agrupar por día
+                </label>
+              </div>
+            )}
+          </div>
+        )}
 
         {showAddManyForm && (
           <div className="p-6 bg-slate-50 border-b border-slate-200 animate-in slide-in-from-top duration-300">
@@ -307,14 +369,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {viewSlots.length === 0 ? (
+              {(tab === 'seguimiento' ? upcomingSlots : viewSlots).length === 0 ? (
                 <tr>
                   <td colSpan={3} className="px-6 py-12 text-center text-slate-400 font-medium">No hay horarios registrados en el sistema.</td>
                 </tr>
               ) : (
                 (() => {
                   if (!groupByDay) {
-                    return viewSlots.map(slot => (
+                    return (tab === 'seguimiento' ? upcomingSlots : viewSlots).map(slot => (
                   <tr key={slot.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="font-bold text-slate-800">
@@ -378,7 +440,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
                     ));
                   }
                   const groups: Record<string, Slot[]> = {};
-                  for (const s of viewSlots) {
+                  const source = tab === 'seguimiento' ? upcomingSlots : viewSlots;
+                  for (const s of source) {
                     const key = new Date(s.startTime).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
                     (groups[key] ||= []).push(s);
                   }
