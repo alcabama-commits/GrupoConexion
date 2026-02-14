@@ -17,15 +17,7 @@ const App: React.FC = () => {
   const loadSlots = useCallback(async () => {
     setIsLoading(true);
     const data = await api.getSlots();
-    // Merge seguimiento desde localStorage
-    try {
-      const raw = localStorage.getItem('followup_map');
-      const map = raw ? JSON.parse(raw) as Record<string, Partial<Slot>> : {};
-      const merged = data.map(s => ({ ...s, ...(map[s.id] || {}) }));
-      setSlots(merged);
-    } catch {
-      setSlots(data);
-    }
+    setSlots(data);
     setIsLoading(false);
   }, []);
 
@@ -139,12 +131,7 @@ const App: React.FC = () => {
               onAddSupport={handleAddSupport}
               onUpdateFollowUp={(slotId, patch) => {
                 setSlots(prev => prev.map(s => s.id === slotId ? { ...s, ...patch } : s));
-                try {
-                  const raw = localStorage.getItem('followup_map');
-                  const map = raw ? JSON.parse(raw) as Record<string, Partial<Slot>> : {};
-                  map[slotId] = { ...(map[slotId] || {}), ...patch };
-                  localStorage.setItem('followup_map', JSON.stringify(map));
-                } catch { /* ignore */ }
+                api.updateFollowUp(slotId, patch);
               }}
             />
           )}
