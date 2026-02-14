@@ -14,6 +14,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete 
   const [newTime, setNewTime] = useState('');
   const [newMinister, setNewMinister] = useState<string>(MINISTERS[0]);
   const [filterMinister, setFilterMinister] = useState<string>(MINISTERS[0]);
+  const [support, setSupport] = useState<string>('');
+  const [error, setError] = useState<string>('');
 
   const viewSlots = useMemo(
     () => slots
@@ -26,15 +28,29 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete 
     e.preventDefault();
     const start = new Date(`${newDate}T${newTime}`);
     const end = new Date(start.getTime() + 60 * 60 * 1000); 
+    setError('');
+
+    // Evitar solapamientos para el mismo líder
+    const overlap = slots.some(s => 
+      s.ministerName === newMinister &&
+      new Date(s.startTime).getTime() < end.getTime() &&
+      new Date(s.endTime).getTime() > start.getTime()
+    );
+    if (overlap) {
+      setError('Ya existe un espacio asignado al mismo líder en ese horario.');
+      return;
+    }
     
     onAdd({
       startTime: start.toISOString(),
       endTime: end.toISOString(),
-      ministerName: newMinister
+      ministerName: newMinister,
+      supportLeader: support || undefined
     });
     
     setNewDate('');
     setNewTime('');
+    setSupport('');
     setShowAddForm(false);
   };
 
@@ -44,7 +60,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete 
         <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
           <h2 className="text-xl font-bold text-slate-800">Control de Espacios</h2>
           <div className="flex items-center gap-3">
-            <label className="text-xs font-bold text-slate-600 uppercase">Ministro</label>
+            <label className="text-xs font-bold text-slate-600 uppercase">Líder</label>
             <select
               value={filterMinister}
               onChange={(e) => setFilterMinister(e.target.value)}
@@ -76,7 +92,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete 
                 <input required type="time" value={newTime} onChange={e => setNewTime(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-red-500 outline-none" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-red-800 uppercase mb-1">Responsable</label>
+                <label className="block text-xs font-bold text-red-800 uppercase mb-1">Líder</label>
                 <select
                   required
                   value={newMinister}
@@ -88,10 +104,28 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete 
                   ))}
                 </select>
               </div>
+              <div>
+                <label className="block text-xs font-bold text-red-800 uppercase mb-1">Apoyo (opcional)</label>
+                <select
+                  value={support}
+                  onChange={e => setSupport(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-red-500 outline-none bg-white"
+                >
+                  <option value="">Sin apoyo</option>
+                  {MINISTERS.filter(m => m !== newMinister).map(m => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+              </div>
               <div className="md:col-span-3">
                 <button type="submit" className="w-full bg-red-600 text-white font-bold py-2.5 rounded-lg text-sm hover:bg-red-700 transition-all shadow-md uppercase tracking-wider">Habilitar Espacio</button>
               </div>
             </form>
+            {error && (
+              <div className="text-red-700 text-sm mt-3 font-semibold">
+                {error}
+              </div>
+            )}
           </div>
         )}
 
@@ -100,7 +134,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete 
             <thead className="bg-slate-50 border-b border-slate-100">
               <tr>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Fecha / Hora</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Responsable</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Líder</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Usuario / Motivo</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Acciones</th>
               </tr>
@@ -122,9 +156,16 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete 
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
-                        {slot.ministerName}
-                      </span>
+                      <div className="space-y-1">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
+                          {slot.ministerName}
+                        </span>
+                        {slot.supportLeader && (
+                          <div className="text-xs text-slate-500">
+                            Apoyo: <span className="font-semibold">{slot.supportLeader}</span>
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       {slot.isBooked ? (

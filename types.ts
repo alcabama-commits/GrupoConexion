@@ -7,6 +7,7 @@ export interface Slot {
   bookedBy?: string;
   reason?: string;
   ministerName: string;
+  supportLeader?: string;
 }
 
 export interface BookingRequest {

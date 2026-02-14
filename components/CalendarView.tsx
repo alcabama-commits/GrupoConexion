@@ -41,6 +41,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ slots, onBook }) => {
           <p className="text-slate-400 text-sm mt-1">Selecciona el horario que más te convenga.</p>
         </div>
         <div className="flex items-center gap-4">
+          <div className="text-xs font-bold text-slate-600 uppercase">Líder</div>
           <select
             value={minister}
             onChange={(e) => setMinister(e.target.value)}
@@ -88,7 +89,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({ slots, onBook }) => {
                       {formatDate(slot.startTime)}
                     </p>
                     <p className="text-xs text-slate-500 mt-1">
-                      Responsable: <span className="font-semibold">{slot.ministerName}</span>
+                      Líder: <span className="font-semibold">{slot.ministerName}</span>
+                      {slot.supportLeader ? (
+                        <> · Apoyo: <span className="font-semibold">{slot.supportLeader}</span></>
+                      ) : null}
                     </p>
                   </div>
                 </div>
