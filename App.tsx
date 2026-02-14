@@ -6,6 +6,7 @@ import Navbar from './components/Navbar';
 import AdminDashboard from './components/AdminDashboard';
 import { v4 as uuidv4 } from 'uuid';
 import AdminAccessModal from './components/AdminAccessModal';
+import { api } from './api';
 
 const App: React.FC = () => {
   const [slots, setSlots] = useState<Slot[]>([]);
@@ -14,13 +15,9 @@ const App: React.FC = () => {
   const [showAccess, setShowAccess] = useState(false);
 
   const loadSlots = useCallback(async () => {
-    // Mantener compatibilidad con implementación local anterior
-    const saved = localStorage.getItem('conexion_camilo_diana_slots_2026');
-    if (saved) {
-      setSlots(JSON.parse(saved));
-    } else {
-      setSlots([]);
-    }
+    setIsLoading(true);
+    const data = await api.getSlots();
+    setSlots(data);
     setIsLoading(false);
   }, []);
 
@@ -29,19 +26,15 @@ const App: React.FC = () => {
   }, []);
 
   const handleBookSlot = useCallback(async (slotId: string, userName: string, reason: string) => {
+    // Actualización optimista para respuesta inmediata en la UI
     setSlots(prev => prev.map(slot => 
       slot.id === slotId 
         ? { ...slot, isBooked: true, bookedBy: userName, reason: reason } 
         : slot
     ));
-    localStorage.setItem('conexion_camilo_diana_slots_2026', JSON.stringify(
-      (prev => prev.map(slot => 
-        slot.id === slotId 
-          ? { ...slot, isBooked: true, bookedBy: userName, reason: reason } 
-          : slot
-      ))(slots)
-    ));
-  }, [slots]);
+    await api.bookSlot(slotId, userName, reason);
+    await loadSlots(); // Recargar para confirmar datos del servidor
+  }, [loadSlots]);
 
   const handleAddSlot = useCallback(async (newSlot: Omit<Slot, 'id' | 'isBooked'>) => {
     const slot: Slot = {
@@ -49,20 +42,21 @@ const App: React.FC = () => {
       id: uuidv4(),
       isBooked: false
     };
-    setSlots(prev => {
-      const next = [...prev, slot];
-      localStorage.setItem('conexion_camilo_diana_slots_2026', JSON.stringify(next));
-      return next;
-    });
-  }, []);
+    
+    // Actualización optimista
+    setSlots(prev => [...prev, slot]);
+    
+    await api.addSlot(slot);
+    await loadSlots();
+  }, [loadSlots]);
 
   const handleDeleteSlot = useCallback(async (slotId: string) => {
-    setSlots(prev => {
-      const next = prev.filter(s => s.id !== slotId);
-      localStorage.setItem('conexion_camilo_diana_slots_2026', JSON.stringify(next));
-      return next;
-    });
-  }, []);
+    // Actualización optimista
+    setSlots(prev => prev.filter(s => s.id !== slotId));
+    
+    await api.deleteSlot(slotId);
+    await loadSlots();
+  }, [loadSlots]);
 
   const handleRequestAdmin = useCallback(() => {
     const ok = sessionStorage.getItem('adminAuthorized') === 'true';
