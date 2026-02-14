@@ -1,7 +1,7 @@
 import { Slot } from './types';
 
 // Hoja de cálculo vinculada: https://docs.google.com/spreadsheets/d/14KfjdaZHvJlBzjJkz4cw8j46LmqOWUE4G-6xpD5UnV4/edit
-const API_URL = 'https://script.google.com/macros/s/AKfycbyGkroW4NnNLJCFlgNT0rmR4jGsrtpvcBcQCngEnhjZNJVFsiFkMnXA9hvjIurv45VR/exec'; 
+const API_URL = 'https://script.google.com/macros/s/AKfycbxiM7AW4CvzLJSr8D0kZSABEURrTv0gDv2S9qTH1zUJmhs89jgtDxxgdrVsfVkBwPNw/exec'; 
 
 export const api = {
   async getSlots(): Promise<Slot[]> {
