@@ -13,12 +13,19 @@ const AddSupportModal: React.FC<AddSupportModalProps> = ({ slot, slots, candidat
   const [leader, setLeader] = useState<string>('');
   const [error, setError] = useState<string>('');
 
-  const availableLeaders = useMemo(() => {
-    return candidates.filter(name => {
-      // Debe existir un slot equivalente (mismo inicio/fin) libre
-      const eq = slots.find(s => s.ministerName === name && s.startTime === slot.startTime && s.endTime === slot.endTime && !s.isBooked);
-      return Boolean(eq);
+  const availabilityMap = useMemo(() => {
+    const map = new Map<string, boolean>();
+    candidates.forEach(name => {
+      const eq = slots.find(
+        s =>
+          s.ministerName === name &&
+          s.startTime === slot.startTime &&
+          s.endTime === slot.endTime &&
+          !s.isBooked
+      );
+      map.set(name, Boolean(eq));
     });
+    return map;
   }, [candidates, slots, slot.startTime, slot.endTime]);
 
   const handleConfirm = () => {
@@ -49,10 +56,18 @@ const AddSupportModal: React.FC<AddSupportModalProps> = ({ slot, slots, candidat
             onChange={e => setLeader(e.target.value)}
           >
             <option value="">Seleccionar líder de apoyo</option>
-            {availableLeaders.map(m => (
-              <option key={m} value={m}>{m}</option>
-            ))}
+            {candidates.map(name => {
+              const available = availabilityMap.get(name) === true;
+              return (
+                <option key={name} value={name} disabled={!available}>
+                  {name}{!available ? ' — no disponible' : ''}
+                </option>
+              );
+            })}
           </select>
+          <div className="text-xs text-slate-500">
+            Si aparece “no disponible”, primero crea un espacio con la misma fecha y hora para ese líder.
+          </div>
           {error && <div className="text-red-700 text-sm">{error}</div>}
           <button
             onClick={handleConfirm}
@@ -67,4 +82,3 @@ const AddSupportModal: React.FC<AddSupportModalProps> = ({ slot, slots, candidat
 };
 
 export default AddSupportModal;
-
