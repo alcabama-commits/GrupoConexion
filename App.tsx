@@ -131,7 +131,13 @@ const App: React.FC = () => {
               onAddSupport={handleAddSupport}
               onUpdateFollowUp={(slotId, patch) => {
                 setSlots(prev => prev.map(s => s.id === slotId ? { ...s, ...patch } : s));
-                api.updateFollowUp(slotId, patch);
+              }}
+              onPersistFollowUp={async (slot) => {
+                try {
+                  await api.followUp(slot.id, !!slot.followUpDone, !!slot.needsReinforcement);
+                } catch {
+                  // silencioso: la UI mantiene cambios locales
+                }
               }}
             />
           )}

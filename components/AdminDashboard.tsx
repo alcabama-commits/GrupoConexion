@@ -10,9 +10,10 @@ interface AdminDashboardProps {
   onDelete: (slotId: string) => void;
   onAddSupport?: (slotId: string, supportLeader: string) => boolean;
   onUpdateFollowUp?: (slotId: string, patch: Partial<Slot>) => void;
+  onPersistFollowUp?: (slot: Slot) => Promise<void>;
 }
 
-const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete, onAddSupport, onUpdateFollowUp }) => {
+const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete, onAddSupport, onUpdateFollowUp, onPersistFollowUp }) => {
   const [filterMinister, setFilterMinister] = useState<string>(MINISTERS[0]);
   const [error, setError] = useState<string>('');
   const [supportFor, setSupportFor] = useState<Slot | null>(null);
@@ -92,6 +93,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
             <FollowUpPanel
               slots={slots}
               onUpdate={(id, patch) => onUpdateFollowUp && onUpdateFollowUp(id, patch)}
+              onPersist={onPersistFollowUp}
             />
           </div>
         )}

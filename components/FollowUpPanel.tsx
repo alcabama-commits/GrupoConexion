@@ -4,10 +4,12 @@ import { Slot, MINISTERS } from '../types';
 interface FollowUpPanelProps {
   slots: Slot[];
   onUpdate: (slotId: string, patch: Partial<Slot>) => void;
+  onPersist?: (slot: Slot) => Promise<void>;
 }
 
-const FollowUpPanel: React.FC<FollowUpPanelProps> = ({ slots, onUpdate }) => {
+const FollowUpPanel: React.FC<FollowUpPanelProps> = ({ slots, onUpdate, onPersist }) => {
   const [leader, setLeader] = useState<string>(MINISTERS[0]);
+  const [saving, setSaving] = useState<Record<string, boolean>>({});
   const list = useMemo(
     () => slots
       .filter(s => s.ministerName === leader && s.isBooked)
@@ -56,7 +58,7 @@ const FollowUpPanel: React.FC<FollowUpPanelProps> = ({ slots, onUpdate }) => {
                   <div className="text-xs text-slate-500">{s.reason}</div>
                 </td>
                 <td className="px-4 py-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
                     <label className="inline-flex items-center gap-2 text-sm text-slate-700">
                       <input
                         type="checkbox"
@@ -73,6 +75,28 @@ const FollowUpPanel: React.FC<FollowUpPanelProps> = ({ slots, onUpdate }) => {
                       />
                       Requiere refuerzo
                     </label>
+                    <div className="flex items-center gap-2">
+                      <button
+                        disabled={!onPersist || saving[s.id] === true}
+                        onClick={async () => {
+                          if (!onPersist) return;
+                          setSaving(prev => ({ ...prev, [s.id]: true }));
+                          try {
+                            await onPersist(s);
+                          } finally {
+                            setSaving(prev => ({ ...prev, [s.id]: false }));
+                          }
+                        }}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                          saving[s.id]
+                            ? 'bg-slate-300 text-white cursor-not-allowed'
+                            : 'bg-red-600 hover:bg-red-700 text-white'
+                        }`}
+                        title="Enviar a la hoja de cálculo"
+                      >
+                        {saving[s.id] ? 'Guardando...' : 'Aceptar'}
+                      </button>
+                    </div>
                   </div>
                 </td>
               </tr>
