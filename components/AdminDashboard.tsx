@@ -26,6 +26,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
     [slots, filterMinister]
   );
 
+  const isSupportBooking = (s: Slot) => {
+    const reasonTag = (s.reason ?? '').toLowerCase().trim();
+    const byTag = (s.bookedBy ?? '').toLowerCase().trim();
+    return reasonTag === 'apoyo' || byTag.startsWith('apoyo');
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const start = new Date(`${newDate}T${newTime}`);
@@ -167,11 +173,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
                       )}
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
-                      {slot.isBooked && !slot.supportLeader && onAddSupport && (
+                      {slot.isBooked && !slot.supportLeader && onAddSupport && !isSupportBooking(slot) && (
                         <button
                           onClick={() => setSupportFor(slot)}
                           className="inline-flex items-center px-3 py-1.5 rounded-md bg-slate-800 text-white text-xs font-bold hover:bg-slate-900"
                           title="Agregar apoyo"
+                        >
+                          <i className="fas fa-user-plus mr-2"></i> Apoyo
+                        </button>
+                      )}
+                      {slot.isBooked && isSupportBooking(slot) && (
+                        <button
+                          disabled
+                          className="inline-flex items-center px-3 py-1.5 rounded-md bg-slate-300 text-white text-xs font-bold cursor-not-allowed"
+                          title="Este espacio es de apoyo, no admite apoyo adicional"
                         >
                           <i className="fas fa-user-plus mr-2"></i> Apoyo
                         </button>
