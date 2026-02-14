@@ -10,6 +10,8 @@ interface FollowUpPanelProps {
 const FollowUpPanel: React.FC<FollowUpPanelProps> = ({ slots, onUpdate, onPersist }) => {
   const [leader, setLeader] = useState<string>(MINISTERS[0]);
   const [saving, setSaving] = useState<Record<string, boolean>>({});
+  const [open, setOpen] = useState(true);
+  const [query, setQuery] = useState('');
   const STEPS = [
     'Paso 1',
     'Paso 2',
@@ -25,8 +27,15 @@ const FollowUpPanel: React.FC<FollowUpPanelProps> = ({ slots, onUpdate, onPersis
   const list = useMemo(
     () => slots
       .filter(s => s.ministerName === leader && s.isBooked)
+      .filter(s => {
+        const q = query.trim().toLowerCase();
+        if (!q) return true;
+        return (s.bookedBy ?? '').toLowerCase().includes(q) ||
+               (s.reason ?? '').toLowerCase().includes(q) ||
+               (s.followUpStep ?? '').toLowerCase().includes(q);
+      })
       .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()),
-    [slots, leader]
+    [slots, leader, query]
   );
 
   const formatDateTime = (iso: string) =>
@@ -34,17 +43,36 @@ const FollowUpPanel: React.FC<FollowUpPanelProps> = ({ slots, onUpdate, onPersis
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <label className="text-xs font-bold text-slate-600 uppercase">Líder</label>
-        <select
-          value={leader}
-          onChange={(e) => setLeader(e.target.value)}
-          className="px-3 py-2 rounded-lg border border-slate-200 text-sm bg-white"
-        >
-          {MINISTERS.map(m => (<option key={m} value={m}>{m}</option>))}
-        </select>
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-3">
+          <label className="text-xs font-bold text-slate-600 uppercase">Líder</label>
+          <select
+            value={leader}
+            onChange={(e) => setLeader(e.target.value)}
+            className="px-3 py-2 rounded-lg border border-slate-200 text-sm bg-white"
+          >
+            {MINISTERS.map(m => (<option key={m} value={m}>{m}</option>))}
+          </select>
+        </div>
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Buscar por nombre, motivo o paso"
+            className="flex-1 md:w-72 px-3 py-2 rounded-lg border border-slate-200 text-sm"
+            type="text"
+          />
+          <button
+            onClick={() => setOpen(o => !o)}
+            className="px-4 py-2 rounded-lg text-sm font-bold bg-slate-900 text-white hover:bg-slate-800"
+            type="button"
+          >
+            {open ? 'Ocultar' : 'Mostrar'}
+          </button>
+        </div>
       </div>
 
+      {open && (
       <div className="overflow-x-auto">
         <table className="w-full text-left">
           <thead className="bg-slate-50 border-b border-slate-100">
@@ -130,6 +158,7 @@ const FollowUpPanel: React.FC<FollowUpPanelProps> = ({ slots, onUpdate, onPersis
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 };
