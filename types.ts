@@ -24,3 +24,12 @@ export interface ChatMessage {
   role: 'user' | 'model';
   content: string;
 }
+
+export const MINISTERS = [
+  'Camilo Martinez',
+  'Willmer Chisco',
+  'Jhon Botton',
+  'Diana Acosta',
+  'Andrea Acosta',
+  'Mayerly Carrero'
+] as const;

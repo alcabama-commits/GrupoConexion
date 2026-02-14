@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Slot } from '../types';
+import React, { useMemo, useState } from 'react';
+import { Slot, MINISTERS } from '../types';
 
 interface AdminDashboardProps {
   slots: Slot[];
@@ -12,7 +12,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete 
   const [showAddForm, setShowAddForm] = useState(false);
   const [newDate, setNewDate] = useState('');
   const [newTime, setNewTime] = useState('');
-  const [newMinister, setNewMinister] = useState('Líder Conexión');
+  const [newMinister, setNewMinister] = useState<string>(MINISTERS[0]);
+  const [filterMinister, setFilterMinister] = useState<string>(MINISTERS[0]);
+
+  const viewSlots = useMemo(
+    () => slots
+      .filter(s => s.ministerName === filterMinister)
+      .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()),
+    [slots, filterMinister]
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +43,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
           <h2 className="text-xl font-bold text-slate-800">Control de Espacios</h2>
+          <div className="flex items-center gap-3">
+            <label className="text-xs font-bold text-slate-600 uppercase">Ministro</label>
+            <select
+              value={filterMinister}
+              onChange={(e) => setFilterMinister(e.target.value)}
+              className="px-3 py-2 rounded-lg border border-slate-200 text-sm bg-white"
+            >
+              {MINISTERS.map(m => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          </div>
           <button 
             onClick={() => setShowAddForm(!showAddForm)}
             className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center transition-all shadow-sm"
@@ -57,7 +77,16 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete 
               </div>
               <div>
                 <label className="block text-xs font-bold text-red-800 uppercase mb-1">Responsable</label>
-                <input required type="text" value={newMinister} onChange={e => setNewMinister(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-red-500 outline-none" />
+                <select
+                  required
+                  value={newMinister}
+                  onChange={e => setNewMinister(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-red-500 outline-none bg-white"
+                >
+                  {MINISTERS.map(m => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
               </div>
               <div className="md:col-span-3">
                 <button type="submit" className="w-full bg-red-600 text-white font-bold py-2.5 rounded-lg text-sm hover:bg-red-700 transition-all shadow-md uppercase tracking-wider">Habilitar Espacio</button>
@@ -71,17 +100,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete 
             <thead className="bg-slate-50 border-b border-slate-100">
               <tr>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Fecha / Hora</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Responsable</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Usuario / Motivo</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {slots.length === 0 ? (
+              {viewSlots.length === 0 ? (
                 <tr>
                   <td colSpan={3} className="px-6 py-12 text-center text-slate-400 font-medium">No hay horarios registrados en el sistema.</td>
                 </tr>
               ) : (
-                slots.map(slot => (
+                viewSlots.map(slot => (
                   <tr key={slot.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="font-bold text-slate-800">
@@ -90,6 +120,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete 
                       <div className="text-xs text-red-600 font-semibold">
                         {new Date(slot.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                       </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
+                        {slot.ministerName}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
                       {slot.isBooked ? (
