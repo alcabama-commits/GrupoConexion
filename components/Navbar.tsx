@@ -5,9 +5,10 @@ import { AppMode } from '../types';
 interface NavbarProps {
   mode: AppMode;
   setMode: (mode: AppMode) => void;
+  onRequestAdmin?: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ mode, setMode }) => {
+const Navbar: React.FC<NavbarProps> = ({ mode, setMode, onRequestAdmin }) => {
   return (
     <nav className="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
@@ -27,7 +28,13 @@ const Navbar: React.FC<NavbarProps> = ({ mode, setMode }) => {
             Reservar
           </button>
           <button 
-            onClick={() => setMode(AppMode.ADMIN)}
+            onClick={() => {
+              if (onRequestAdmin) {
+                onRequestAdmin();
+              } else {
+                setMode(AppMode.ADMIN);
+              }
+            }}
             className={`px-6 py-2 rounded-full text-xs font-black transition-all uppercase tracking-widest ${mode === AppMode.ADMIN ? 'bg-red-600 text-white shadow-lg scale-105' : 'text-slate-500 hover:text-red-600'}`}
           >
             Admin

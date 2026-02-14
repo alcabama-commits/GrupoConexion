@@ -5,62 +5,77 @@ import CalendarView from './components/CalendarView';
 import Navbar from './components/Navbar';
 import AdminDashboard from './components/AdminDashboard';
 import { v4 as uuidv4 } from 'uuid';
-
-// Updated for 2026 - Monday/Tuesday slots at 9:00 PM as initial baseline
-const INITIAL_SLOTS: Slot[] = [
-  { id: '1', startTime: new Date(2026, 0, 12, 21, 0).toISOString(), endTime: new Date(2026, 0, 12, 22, 0).toISOString(), isBooked: false, ministerName: 'Camilo y Diana' },
-  { id: '2', startTime: new Date(2026, 0, 13, 21, 0).toISOString(), endTime: new Date(2026, 0, 13, 22, 0).toISOString(), isBooked: false, ministerName: 'Camilo y Diana' },
-  { id: '3', startTime: new Date(2026, 0, 19, 21, 0).toISOString(), endTime: new Date(2026, 0, 19, 22, 0).toISOString(), isBooked: false, ministerName: 'Camilo y Diana' },
-  { id: '4', startTime: new Date(2026, 0, 20, 21, 0).toISOString(), endTime: new Date(2026, 0, 20, 22, 0).toISOString(), isBooked: false, ministerName: 'Camilo y Diana' },
-  { id: '5', startTime: new Date(2026, 0, 26, 21, 0).toISOString(), endTime: new Date(2026, 0, 26, 22, 0).toISOString(), isBooked: false, ministerName: 'Camilo y Diana' },
-  { id: '6', startTime: new Date(2026, 0, 27, 21, 0).toISOString(), endTime: new Date(2026, 0, 27, 22, 0).toISOString(), isBooked: false, ministerName: 'Camilo y Diana' },
-];
+import AdminAccessModal from './components/AdminAccessModal';
 
 const App: React.FC = () => {
   const [slots, setSlots] = useState<Slot[]>([]);
   const [mode, setMode] = useState<AppMode>(AppMode.USER);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showAccess, setShowAccess] = useState(false);
 
-  useEffect(() => {
-    const savedSlots = localStorage.getItem('conexion_camilo_diana_slots_2026');
-    if (savedSlots) {
-      setSlots(JSON.parse(savedSlots));
+  const loadSlots = useCallback(async () => {
+    // Mantener compatibilidad con implementación local anterior
+    const saved = localStorage.getItem('conexion_camilo_diana_slots_2026');
+    if (saved) {
+      setSlots(JSON.parse(saved));
     } else {
-      setSlots(INITIAL_SLOTS);
+      setSlots([]);
     }
-    setIsLoaded(true);
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('conexion_camilo_diana_slots_2026', JSON.stringify(slots));
-    }
-  }, [slots, isLoaded]);
+    loadSlots();
+  }, []);
 
-  const handleBookSlot = useCallback((slotId: string, userName: string, reason: string) => {
+  const handleBookSlot = useCallback(async (slotId: string, userName: string, reason: string) => {
     setSlots(prev => prev.map(slot => 
       slot.id === slotId 
         ? { ...slot, isBooked: true, bookedBy: userName, reason: reason } 
         : slot
     ));
-  }, []);
+    localStorage.setItem('conexion_camilo_diana_slots_2026', JSON.stringify(
+      (prev => prev.map(slot => 
+        slot.id === slotId 
+          ? { ...slot, isBooked: true, bookedBy: userName, reason: reason } 
+          : slot
+      ))(slots)
+    ));
+  }, [slots]);
 
-  const handleAddSlot = useCallback((newSlot: Omit<Slot, 'id' | 'isBooked'>) => {
+  const handleAddSlot = useCallback(async (newSlot: Omit<Slot, 'id' | 'isBooked'>) => {
     const slot: Slot = {
       ...newSlot,
       id: uuidv4(),
       isBooked: false
     };
-    setSlots(prev => [...prev, slot]);
+    setSlots(prev => {
+      const next = [...prev, slot];
+      localStorage.setItem('conexion_camilo_diana_slots_2026', JSON.stringify(next));
+      return next;
+    });
   }, []);
 
-  const handleDeleteSlot = useCallback((slotId: string) => {
-    setSlots(prev => prev.filter(s => s.id !== slotId));
+  const handleDeleteSlot = useCallback(async (slotId: string) => {
+    setSlots(prev => {
+      const next = prev.filter(s => s.id !== slotId);
+      localStorage.setItem('conexion_camilo_diana_slots_2026', JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  const handleRequestAdmin = useCallback(() => {
+    const ok = sessionStorage.getItem('adminAuthorized') === 'true';
+    if (ok) {
+      setMode(AppMode.ADMIN);
+    } else {
+      setShowAccess(true);
+    }
   }, []);
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <Navbar mode={mode} setMode={setMode} />
+      <Navbar mode={mode} setMode={setMode} onRequestAdmin={handleRequestAdmin} />
       
       <main className="flex-grow container mx-auto px-4 py-12 max-w-4xl">
         <header className="mb-12 text-center animate-in fade-in slide-in-from-top duration-700">
@@ -78,7 +93,12 @@ const App: React.FC = () => {
         </header>
 
         <div className="animate-in fade-in slide-in-from-bottom duration-700 delay-200">
-          {mode === AppMode.USER ? (
+          {isLoading ? (
+            <div className="text-center py-12">
+              <i className="fas fa-circle-notch fa-spin text-red-600 text-3xl"></i>
+              <p className="mt-4 text-slate-500">Cargando disponibilidad...</p>
+            </div>
+          ) : mode === AppMode.USER ? (
             <div className="max-w-3xl mx-auto">
               {/* El banner informativo ha sido eliminado para permitir flexibilidad de horarios según se definan en el panel admin */}
               <CalendarView slots={slots} onBook={handleBookSlot} />
@@ -100,6 +120,14 @@ const App: React.FC = () => {
           <p className="text-xs mt-3 tracking-[0.2em] font-medium uppercase opacity-50">2026</p>
         </div>
       </footer>
+      <AdminAccessModal
+        isOpen={showAccess}
+        onSuccess={() => {
+          setShowAccess(false);
+          setMode(AppMode.ADMIN);
+        }}
+        onClose={() => setShowAccess(false)}
+      />
     </div>
   );
 };
