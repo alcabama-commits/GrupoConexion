@@ -22,8 +22,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
   const [supportFor, setSupportFor] = useState<Slot | null>(null);
   const [showAddManyForm, setShowAddManyForm] = useState(false);
   const [batchLeader, setBatchLeader] = useState<string>(MINISTERS[0]);
-  const [batch, setBatch] = useState<Array<{ date: string; time: string; duration: number }>>([
-    { date: '', time: '', duration: 60 },
+  const [batch, setBatch] = useState<Array<{ date: string; time: string }>>([
+    { date: '', time: '' },
   ]);
   const [tab, setTab] = useState<'control' | 'seguimiento'>('control');
 
@@ -180,7 +180,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
                 for (const item of batch) {
                   if (!item.date || !item.time) continue;
                   const start = new Date(`${item.date}T${item.time}`);
-                  const end = new Date(start.getTime() + item.duration * 60 * 1000);
+                  const end = new Date(start.getTime() + 60 * 60 * 1000);
                   const overlapExisting = slots.some(s =>
                     s.ministerName === batchLeader &&
                     new Date(s.startTime).getTime() < end.getTime() &&
@@ -201,12 +201,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
                 if (created === 0) {
                   setError('No se crearon horarios. Revisa solapes o datos incompletos.');
                 }
-                setBatch([{ date: '', time: '', duration: 60 }]);
+                setBatch([{ date: '', time: '' }]);
                 setShowAddManyForm(false);
               }}
               className="space-y-4"
             >
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                 <div className="md:col-span-1">
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Líder</label>
                   <select
@@ -217,13 +217,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
                     {MINISTERS.map(m => (<option key={m} value={m}>{m}</option>))}
                   </select>
                 </div>
-                <div className="md:col-span-3 text-xs text-slate-500">
-                  Ingresa varias fechas y horas; la duración por defecto es 60 minutos. Se omitirán solapes del mismo líder.
+                <div className="md:col-span-2 text-xs text-slate-500">
+                  Ingresa varias fechas y horas; cada espacio dura 60 minutos. Se omitirán solapes del mismo líder.
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-3">
                 {batch.map((row, idx) => (
-                  <div key={idx} className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+                  <div key={idx} className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
                     <div>
                       <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Fecha</label>
                       <input
@@ -250,25 +250,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
                         className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
                       />
                     </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Duración (min)</label>
-                      <input
-                        required
-                        min={15}
-                        step={15}
-                        type="number"
-                        value={row.duration}
-                        onChange={e => {
-                          const v = parseInt(e.target.value || '60', 10);
-                          setBatch(b => b.map((r, i) => i === idx ? { ...r, duration: v } : r));
-                        }}
-                        className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
-                      />
-                    </div>
                     <div className="flex gap-2">
                       <button
                         type="button"
-                        onClick={() => setBatch(b => [...b, { date: '', time: '', duration: 60 }])}
+                        onClick={() => setBatch(b => [...b, { date: '', time: '' }])}
                         className="flex-1 bg-slate-900 text-white font-bold py-2.5 rounded-lg text-sm hover:bg-slate-800 transition-all"
                       >
                         Añadir
