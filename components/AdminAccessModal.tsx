@@ -6,20 +6,13 @@ interface AdminAccessModalProps {
   onClose: () => void;
 }
 
-const ACCESS_CODE_HASH =
-  '9f2d45d63cc00693f3c71eaf0f4d9a14a4e37d2f3d9d2a6f6b2c0b9d1c0a7b5e'; // sha256 of "CONEXION2026"
-
-async function sha256(text: string): Promise<string> {
-  const enc = new TextEncoder().encode(text);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', enc);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
+const ACCESS_CODE = 'CONEXION2026';
 
 const AdminAccessModal: React.FC<AdminAccessModalProps> = ({ isOpen, onSuccess, onClose }) => {
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [show, setShow] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
@@ -36,8 +29,7 @@ const AdminAccessModal: React.FC<AdminAccessModalProps> = ({ isOpen, onSuccess, 
     setSubmitting(true);
     setError('');
     try {
-      const hash = await sha256(code.trim());
-      const ok = hash === ACCESS_CODE_HASH;
+      const ok = code.trim() === ACCESS_CODE;
       if (ok) {
         sessionStorage.setItem('adminAuthorized', 'true');
         onSuccess();
@@ -59,14 +51,24 @@ const AdminAccessModal: React.FC<AdminAccessModalProps> = ({ isOpen, onSuccess, 
           <p className="text-xs text-slate-500 mt-1">Ingresa el código para continuar</p>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <input
-            type="password"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder="Código de acceso"
-            className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-red-600"
-            autoFocus
-          />
+          <div className="relative">
+            <input
+              type={show ? 'text' : 'password'}
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="Código de acceso"
+              className="w-full pr-12 px-4 py-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-red-600"
+              autoFocus
+            />
+            <button
+              type="button"
+              aria-label={show ? 'Ocultar código' : 'Mostrar código'}
+              onClick={() => setShow(s => !s)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+            >
+              <i className={`fa-solid ${show ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+            </button>
+          </div>
           {error && <p className="text-red-600 text-sm">{error}</p>}
           <div className="flex items-center justify-end gap-3">
             <button
@@ -91,4 +93,3 @@ const AdminAccessModal: React.FC<AdminAccessModalProps> = ({ isOpen, onSuccess, 
 };
 
 export default AdminAccessModal;
-
