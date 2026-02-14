@@ -43,7 +43,7 @@ export const api = {
     });
   },
 
-  async updateFollowUp(slotId: string, patch: { followUpDone?: boolean; needsReinforcement?: boolean }) {
+  async updateFollowUp(slotId: string, patch: { followUpDone?: boolean; needsReinforcement?: boolean; followUpStep?: string }) {
     await fetch(API_URL, {
       method: 'POST',
       body: JSON.stringify({ action: 'updateFollowUp', slotId, ...patch }),
