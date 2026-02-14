@@ -2,8 +2,8 @@ import { Slot } from './types';
 
 // Hoja de cálculo vinculada: https://docs.google.com/spreadsheets/d/14KfjdaZHvJlBzjJkz4cw8j46LmqOWUE4G-6xpD5UnV4/edit
 // Estructura de columnas:
-// A: Responsable, B: Fecha, C: Hora, D: Usuario, E: Motivos, F: Apoyo, G: ID, H: Seguimiento, I: Refuerzo, J: Paso
-const API_URL = 'https://script.google.com/macros/s/AKfycbyYXzttpdUdSBV8VRqE38mFOI_E4zjEnTmTveC7m16Grgy4zH0sItyyEAha_WYaEB-E/exec'; 
+// A: Responsable, B: Fecha, C: Hora, D: Usuario, E: Motivos, F: Apoyo, G: Seguimiento, H: Refuerzo, I: Paso, J: (Vacio), K: ID, L: StartTime, M: EndTime
+const API_URL = 'https://script.google.com/macros/s/AKfycbxjhTTsuGDZw_VlpuiWZ1yB0m6GXFxDtuck14X63zmsk3smdYNuKYBm-dNQ7kgwckz0/exec'; 
 
 export const api = {
   async getSlots(): Promise<Slot[]> {
