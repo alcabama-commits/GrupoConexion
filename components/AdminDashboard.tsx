@@ -2,15 +2,17 @@
 import React, { useMemo, useState } from 'react';
 import { Slot, MINISTERS } from '../types';
 import AddSupportModal from './AddSupportModal';
+import FollowUpPanel from './FollowUpPanel';
 
 interface AdminDashboardProps {
   slots: Slot[];
   onAdd: (slot: Omit<Slot, 'id' | 'isBooked'>) => void;
   onDelete: (slotId: string) => void;
   onAddSupport?: (slotId: string, supportLeader: string) => boolean;
+  onUpdateFollowUp?: (slotId: string, patch: Partial<Slot>) => void;
 }
 
-const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete, onAddSupport }) => {
+const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete, onAddSupport, onUpdateFollowUp }) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newDate, setNewDate] = useState('');
   const [newTime, setNewTime] = useState('');
@@ -23,6 +25,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
   const [batch, setBatch] = useState<Array<{ date: string; time: string; duration: number }>>([
     { date: '', time: '', duration: 60 },
   ]);
+  const [tab, setTab] = useState<'control' | 'seguimiento'>('control');
 
   const viewSlots = useMemo(
     () => slots
@@ -70,7 +73,25 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="p-6 border-b border-slate-100 bg-slate-50">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-xl font-bold text-slate-800">Control de Espacios</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-bold text-slate-800">Panel</h2>
+              <div className="ml-4 bg-white rounded-lg border border-slate-200 p-1 text-xs font-bold">
+                <button
+                  className={`px-3 py-1 rounded ${tab === 'control' ? 'bg-red-600 text-white' : 'text-slate-700'}`}
+                  onClick={() => setTab('control')}
+                  type="button"
+                >
+                  Control
+                </button>
+                <button
+                  className={`px-3 py-1 rounded ${tab === 'seguimiento' ? 'bg-red-600 text-white' : 'text-slate-700'}`}
+                  onClick={() => setTab('seguimiento')}
+                  type="button"
+                >
+                  Seguimiento
+                </button>
+              </div>
+            </div>
             <div className="flex items-center gap-3">
             <label className="text-xs font-bold text-slate-600 uppercase">Líder</label>
             <select
@@ -102,6 +123,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
             </button>
           </div>
         </div>
+
+        {tab === 'seguimiento' && (
+          <div className="p-6">
+            <FollowUpPanel
+              slots={slots}
+              onUpdate={(id, patch) => onUpdateFollowUp && onUpdateFollowUp(id, patch)}
+            />
+          </div>
+        )}
 
         {showAddForm && (
           <div className="p-6 bg-red-50/50 border-b border-red-100 animate-in slide-in-from-top duration-300">
