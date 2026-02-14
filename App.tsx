@@ -58,6 +58,31 @@ const App: React.FC = () => {
     await loadSlots();
   }, [loadSlots]);
 
+  const handleAddSupport = useCallback((slotId: string, supportLeader: string): boolean => {
+    const main = slots.find(s => s.id === slotId);
+    if (!main || !main.isBooked) return false;
+    // Debe existir un slot del líder de apoyo con mismo inicio/fin libre
+    const supportSlot = slots.find(s => 
+      s.ministerName === supportLeader &&
+      s.startTime === main.startTime &&
+      s.endTime === main.endTime &&
+      !s.isBooked
+    );
+    if (!supportSlot) return false;
+    const updated = slots.map(s => {
+      if (s.id === main.id) {
+        return { ...s, supportLeader };
+      }
+      if (s.id === supportSlot.id) {
+        return { ...s, isBooked: true, bookedBy: `Apoyo a ${main.bookedBy ?? 'ministración'}`, reason: 'Apoyo' };
+      }
+      return s;
+    });
+    setSlots(updated);
+    // Marcar en backend el apoyo como reservado, si aplica
+    api.bookSlot(supportSlot.id, `Apoyo (${supportLeader})`, 'Apoyo');
+    return true;
+  }, [slots]);
   const handleRequestAdmin = useCallback(() => {
     const ok = sessionStorage.getItem('adminAuthorized') === 'true';
     if (ok) {
@@ -98,7 +123,12 @@ const App: React.FC = () => {
               <CalendarView slots={slots} onBook={handleBookSlot} />
             </div>
           ) : (
-            <AdminDashboard slots={slots} onAdd={handleAddSlot} onDelete={handleDeleteSlot} />
+            <AdminDashboard
+              slots={slots}
+              onAdd={handleAddSlot}
+              onDelete={handleDeleteSlot}
+              onAddSupport={handleAddSupport}
+            />
           )}
         </div>
       </main>

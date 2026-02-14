@@ -1,21 +1,23 @@
 
 import React, { useMemo, useState } from 'react';
 import { Slot, MINISTERS } from '../types';
+import AddSupportModal from './AddSupportModal';
 
 interface AdminDashboardProps {
   slots: Slot[];
   onAdd: (slot: Omit<Slot, 'id' | 'isBooked'>) => void;
   onDelete: (slotId: string) => void;
+  onAddSupport?: (slotId: string, supportLeader: string) => boolean;
 }
 
-const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete }) => {
+const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete, onAddSupport }) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newDate, setNewDate] = useState('');
   const [newTime, setNewTime] = useState('');
   const [newMinister, setNewMinister] = useState<string>(MINISTERS[0]);
   const [filterMinister, setFilterMinister] = useState<string>(MINISTERS[0]);
-  const [support, setSupport] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [supportFor, setSupportFor] = useState<Slot | null>(null);
 
   const viewSlots = useMemo(
     () => slots
@@ -44,13 +46,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete 
     onAdd({
       startTime: start.toISOString(),
       endTime: end.toISOString(),
-      ministerName: newMinister,
-      supportLeader: support || undefined
+      ministerName: newMinister
     });
     
     setNewDate('');
     setNewTime('');
-    setSupport('');
     setShowAddForm(false);
   };
 
@@ -100,19 +100,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete 
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-red-500 outline-none bg-white"
                 >
                   {MINISTERS.map(m => (
-                    <option key={m} value={m}>{m}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-red-800 uppercase mb-1">Apoyo (opcional)</label>
-                <select
-                  value={support}
-                  onChange={e => setSupport(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-red-500 outline-none bg-white"
-                >
-                  <option value="">Sin apoyo</option>
-                  {MINISTERS.filter(m => m !== newMinister).map(m => (
                     <option key={m} value={m}>{m}</option>
                   ))}
                 </select>
@@ -179,7 +166,16 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete 
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-6 py-4 text-right space-x-2">
+                      {slot.isBooked && !slot.supportLeader && onAddSupport && (
+                        <button
+                          onClick={() => setSupportFor(slot)}
+                          className="inline-flex items-center px-3 py-1.5 rounded-md bg-slate-800 text-white text-xs font-bold hover:bg-slate-900"
+                          title="Agregar apoyo"
+                        >
+                          <i className="fas fa-user-plus mr-2"></i> Apoyo
+                        </button>
+                      )}
                       <button 
                         onClick={() => onDelete(slot.id)}
                         className="text-slate-300 hover:text-red-600 p-2 transition-colors"
@@ -193,9 +189,24 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete 
             </tbody>
           </table>
         </div>
+      {supportFor && onAddSupport && (
+        <AddSupportModal
+          slot={supportFor}
+          slots={slots}
+          candidates={MINISTERS.filter(m => m !== supportFor.ministerName)}
+          onConfirm={(leader) => {
+            const ok = onAddSupport(supportFor.id, leader);
+            if (!ok) {
+              setError('El líder seleccionado no tiene un espacio libre equivalente.');
+            } else {
+              setSupportFor(null);
+            }
+          }}
+          onClose={() => setSupportFor(null)}
+        />
+      )}
       </div>
     </div>
   );
 };
 
-export default AdminDashboard;
