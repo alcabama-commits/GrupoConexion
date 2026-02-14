@@ -1,14 +1,14 @@
 import React, { useMemo, useState } from 'react';
-import { Slot, MINISTERS } from '../types';
+import { Slot } from '../types';
 
 interface FollowUpPanelProps {
   slots: Slot[];
   onUpdate: (slotId: string, patch: Partial<Slot>) => void;
   onPersist?: (slot: Slot) => Promise<void>;
+  leaderFilter?: string;
 }
 
-const FollowUpPanel: React.FC<FollowUpPanelProps> = ({ slots, onUpdate, onPersist }) => {
-  const [leader, setLeader] = useState<string>(MINISTERS[0]);
+const FollowUpPanel: React.FC<FollowUpPanelProps> = ({ slots, onUpdate, onPersist, leaderFilter }) => {
   const [saving, setSaving] = useState<Record<string, boolean>>({});
   const [open, setOpen] = useState(true);
   const [query, setQuery] = useState('');
@@ -26,7 +26,8 @@ const FollowUpPanel: React.FC<FollowUpPanelProps> = ({ slots, onUpdate, onPersis
   ];
   const list = useMemo(
     () => slots
-      .filter(s => s.ministerName === leader && s.isBooked)
+      .filter(s => (leaderFilter && leaderFilter !== 'TODOS') ? s.ministerName === leaderFilter : true)
+      .filter(s => s.isBooked)
       .filter(s => new Date(s.startTime).getTime() < Date.now())
       .filter(s => {
         const q = query.trim().toLowerCase();
@@ -36,7 +37,7 @@ const FollowUpPanel: React.FC<FollowUpPanelProps> = ({ slots, onUpdate, onPersis
                (s.followUpStep ?? '').toLowerCase().includes(q);
       })
       .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()),
-    [slots, leader, query]
+    [slots, leaderFilter, query]
   );
 
   const formatDateTime = (iso: string) =>
@@ -45,16 +46,6 @@ const FollowUpPanel: React.FC<FollowUpPanelProps> = ({ slots, onUpdate, onPersis
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-3">
-          <label className="text-xs font-bold text-slate-600 uppercase">Líder</label>
-          <select
-            value={leader}
-            onChange={(e) => setLeader(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-slate-200 text-sm bg-white"
-          >
-            {MINISTERS.map(m => (<option key={m} value={m}>{m}</option>))}
-          </select>
-        </div>
         <div className="flex items-center gap-2 w-full md:w-auto">
           <input
             value={query}

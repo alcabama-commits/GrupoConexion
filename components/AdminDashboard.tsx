@@ -31,7 +31,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
 
   const viewSlots = useMemo(() => {
     const base = slots
-      .filter(s => s.ministerName === filterMinister)
+      .filter(s => filterMinister === 'TODOS' ? true : s.ministerName === filterMinister)
       .filter(s => {
         if (status === 'libres') return !s.isBooked;
         if (status === 'reservados') return s.isBooked;
@@ -95,27 +95,30 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
               </div>
             </div>
             <div className="flex items-center gap-3">
-            <label className="text-xs font-bold text-slate-600 uppercase">Líder</label>
+            <label className="text-xs font-bold text-slate-600 uppercase">Responsable</label>
             <select
               value={filterMinister}
               onChange={(e) => setFilterMinister(e.target.value)}
               className="px-3 py-2 rounded-lg border border-slate-200 text-sm bg-white"
             >
+              <option value="TODOS">Todos</option>
               {MINISTERS.map(m => (
                 <option key={m} value={m}>{m}</option>
               ))}
             </select>
             </div>
+            {tab === 'control' && (
             <button 
               onClick={() => {
                 setShowAddManyForm(!showAddManyForm);
-                setBatchLeader(filterMinister);
+                setBatchLeader(filterMinister === 'TODOS' ? MINISTERS[0] : filterMinister);
               }}
               className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center transition-all shadow-sm w-full sm:w-auto"
             >
               <i className={`fas ${showAddManyForm ? 'fa-times' : 'fa-layer-group'} mr-2`}></i>
-              {showAddManyForm ? 'Cerrar' : 'Crear Múltiples'}
+              {showAddManyForm ? 'Cerrar' : 'Crear Registro'}
             </button>
+            )}
           </div>
         </div>
 
@@ -133,7 +136,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Buscar por usuario, motivo o líder"
+                  placeholder="Buscar por usuario, motivo o responsable"
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
                 />
               </div>
@@ -183,6 +186,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
               slots={slots}
               onUpdate={(id, patch) => onUpdateFollowUp && onUpdateFollowUp(id, patch)}
               onPersist={onPersistFollowUp}
+              leaderFilter={filterMinister}
             />
           </div>
         )}
@@ -201,7 +205,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Buscar por usuario, motivo o líder"
+                  placeholder="Buscar por usuario, motivo o responsable"
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
                 />
               </div>
@@ -365,7 +369,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
             <thead className="bg-slate-50 border-b border-slate-100">
               <tr>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Fecha / Hora</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Líder</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Responsable</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Usuario / Motivo</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Acciones</th>
               </tr>
