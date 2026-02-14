@@ -56,7 +56,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
 
   const nowMs = Date.now();
   const upcomingSlots = useMemo(
-    () => viewSlots.filter(s => new Date(s.startTime).getTime() >= nowMs),
+    () => viewSlots
+      .filter(s => new Date(s.startTime).getTime() >= nowMs)
+      .filter(s => s.isBooked),
     [viewSlots, nowMs]
   );
 

@@ -27,6 +27,7 @@ const FollowUpPanel: React.FC<FollowUpPanelProps> = ({ slots, onUpdate, onPersis
   const list = useMemo(
     () => slots
       .filter(s => s.ministerName === leader && s.isBooked)
+      .filter(s => new Date(s.startTime).getTime() < Date.now())
       .filter(s => {
         const q = query.trim().toLowerCase();
         if (!q) return true;
