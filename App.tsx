@@ -38,12 +38,26 @@ const App: React.FC = () => {
 
   const handleBookSlot = useCallback(async (slotId: string, userName: string, reason: string) => {
     // Actualización optimista para respuesta inmediata en la UI
+    let start: string | undefined;
+    let end: string | undefined;
     setSlots(prev => prev.map(slot => 
       slot.id === slotId 
-        ? { ...slot, isBooked: true, bookedBy: userName, reason: reason } 
+        ? (() => {
+            start = slot.startTime;
+            end = slot.endTime;
+            return { ...slot, isBooked: true, bookedBy: userName, reason: reason };
+          })()
         : slot
     ));
-    await api.bookSlot(slotId, userName, reason);
+    try {
+      const raw = localStorage.getItem('slot_time_map');
+      const map: Record<string, { startTime: string; endTime: string }> = raw ? JSON.parse(raw) : {};
+      if (start && end) {
+        map[slotId] = { startTime: start, endTime: end };
+        localStorage.setItem('slot_time_map', JSON.stringify(map));
+      }
+    } catch {}
+    await api.bookSlot(slotId, userName, reason, start, end);
     await loadSlots(); // Recargar para confirmar datos del servidor
   }, [loadSlots]);
 
@@ -56,6 +70,12 @@ const App: React.FC = () => {
     
     // Actualización optimista
     setSlots(prev => [...prev, slot]);
+    try {
+      const raw = localStorage.getItem('slot_time_map');
+      const map: Record<string, { startTime: string; endTime: string }> = raw ? JSON.parse(raw) : {};
+      map[slot.id] = { startTime: slot.startTime, endTime: slot.endTime };
+      localStorage.setItem('slot_time_map', JSON.stringify(map));
+    } catch {}
     
     await api.addSlot(slot);
     await loadSlots();
@@ -91,7 +111,7 @@ const App: React.FC = () => {
     });
     setSlots(updated);
     // Marcar en backend el apoyo como reservado, si aplica
-    api.bookSlot(supportSlot.id, `Apoyo (${supportLeader})`, 'Apoyo');
+    api.bookSlot(supportSlot.id, `Apoyo (${supportLeader})`, 'Apoyo', supportSlot.startTime, supportSlot.endTime);
     api.addSupport(main.id, supportLeader);
     return true;
   }, [slots]);

@@ -10,7 +10,19 @@ export const api = {
     try {
       const response = await fetch(API_URL);
       const data = await response.json();
-      return data;
+      try {
+        const raw = localStorage.getItem('slot_time_map');
+        const map: Record<string, { startTime: string; endTime: string }> = raw ? JSON.parse(raw) : {};
+        return (data as Slot[]).map(s => {
+          const hasValid = s.startTime && !Number.isNaN(Date.parse(s.startTime));
+          if (!hasValid && map[s.id]) {
+            return { ...s, startTime: map[s.id].startTime, endTime: map[s.id].endTime };
+          }
+          return s;
+        });
+      } catch {
+        return data;
+      }
     } catch (error) {
       console.error("Error obteniendo horarios:", error);
       return [];
@@ -31,10 +43,10 @@ export const api = {
     });
   },
 
-  async bookSlot(slotId: string, userName: string, reason: string) {
+  async bookSlot(slotId: string, userName: string, reason: string, startTime?: string, endTime?: string) {
     await fetch(API_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: 'book', slotId, userName, reason }),
+      body: JSON.stringify({ action: 'book', slotId, userName, reason, startTime, endTime }),
     });
   },
 

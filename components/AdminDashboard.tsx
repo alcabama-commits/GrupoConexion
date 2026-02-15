@@ -386,10 +386,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
                   <tr key={slot.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="font-bold text-slate-800">
-                        {new Date(slot.startTime).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })}
+                        {isNaN(new Date(slot.startTime).getTime()) ? '—' : new Date(slot.startTime).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })}
                       </div>
                       <div className="text-xs text-red-600 font-semibold">
-                        {new Date(slot.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                        {isNaN(new Date(slot.startTime).getTime()) ? '—' : new Date(slot.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -462,7 +462,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ slots, onAdd, onDelete,
                       <tr key={slot.id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="px-6 py-4">
                           <div className="font-bold text-slate-800">
-                            {new Date(slot.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                            {isNaN(new Date(slot.startTime).getTime()) ? '—' : new Date(slot.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                           </div>
                         </td>
                         <td className="px-6 py-4">
