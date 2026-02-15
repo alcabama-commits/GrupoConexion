@@ -18,7 +18,18 @@ const App: React.FC = () => {
     setIsLoading(true);
     const data = await api.getSlots();
     setSlots(data);
-    setIsLoading(false);
+    try {
+      const now = Date.now();
+      const H48 = 48 * 60 * 60 * 1000;
+      const toDelete = data.filter(s => !s.isBooked && (new Date(s.startTime).getTime() - now) <= H48);
+      if (toDelete.length > 0) {
+        await Promise.all(toDelete.map(s => api.deleteSlot(s.id)));
+        const refreshed = await api.getSlots();
+        setSlots(refreshed);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   useEffect(() => {

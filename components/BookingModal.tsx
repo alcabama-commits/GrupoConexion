@@ -58,14 +58,14 @@ const BookingModal: React.FC<BookingModalProps> = ({ slot, onClose, onConfirm })
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1">Motivo / Necesidad</label>
+            <label className="block text-sm font-bold text-slate-700 mb-1">Propósito de la cita</label>
             <textarea 
               required
               rows={3}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all resize-none bg-slate-50"
-              placeholder="Cuéntanos brevemente cómo podemos apoyarte..."
+              placeholder="Ayúdanos a saber ¿por qué consideras que necesitas una cita? Aporta todos los detalles que puedas"
             ></textarea>
           </div>
 
